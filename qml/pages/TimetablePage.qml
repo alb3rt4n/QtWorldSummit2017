@@ -14,6 +14,8 @@ Page {
   readonly property var currentContentItem: swipeView.itemAt(swipeView.currentIndex)
   readonly property bool currentContentLoading: !currentContentItem ? false : currentContentItem.loading
 
+  signal floatingButtonClicked
+
   AppText {
     text: "No data available."
     visible: !dataAvailable
@@ -26,6 +28,9 @@ Page {
     showIcon: false
     visible: dataAvailable
     contentContainer: swipeView
+    onCurrentItemChanged: {
+      if(dataAvailable) amplitude.logEvent("View Day",{"day" : currentItem.text})
+    }
 
     Repeater {
       // dummyData to avoid tabcontrol issue when no children
@@ -59,6 +64,7 @@ Page {
         scheduleData: modelData.schedule
         onSearchAccepted: {
           if(text !== "") {
+            amplitude.logEvent("Search Talk",{"term" : text})
             var result = DataModel.search(text)
             page.navigationStack.leftColumnIndex = 1
             page.navigationStack.popAllExceptFirstAndPush(Qt.resolvedUrl("SearchPage.qml"), { searchModel: result })
@@ -76,7 +82,7 @@ Page {
 
   FloatingActionButton {
     icon: IconType.star
-    onClicked: navigation.currentIndex = 2
+    onClicked: floatingButtonClicked()
   }
 
   // prepareDaysModel - package schedule data in array with conference days (for tabs)

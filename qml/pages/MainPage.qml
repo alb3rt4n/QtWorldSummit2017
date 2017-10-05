@@ -13,7 +13,7 @@ Page {
     interval: 1000
     repeat: true
 
-    property int conferenceStartTime: 1507626000 // 2017-10-10 9am
+    property int conferenceStartTime: 1507622400 // 2017-10-10 10am GMT+2
     Component.onCompleted: triggered()
     onTriggered: {
       var remain = conferenceStartTime - (Date.now() / 1000)
@@ -189,7 +189,10 @@ Page {
               flat: false
               anchors.horizontalCenter: parent.horizontalCenter
               text: "More Info & Source Code"
-              onClicked: confirmOpenUrl()
+              onClicked: {
+                amplitude.logEvent("Click MainPage Button",{"label" : text})
+                confirmOpenUrl()
+              }
               verticalMargin: 0
             }
 
@@ -210,6 +213,13 @@ Page {
         wrapMode: Text.WordWrap
         color: Theme.secondaryTextColor
         text: "With Qt you can build applications for tomorrow, while delivering value to your customers today. The Qt World Summit offers insight and inspiration to leading technology innovators, industry experts, startups, and the community."
+      }
+
+      AppButton {
+        text: "Show Agenda"
+        anchors.horizontalCenter: parent.horizontalCenter
+        flat: true
+        onClicked: navigationStack.push(Qt.resolvedUrl("RoomPage.qml"), { room: "Agenda" })
       }
 
       // Spacer
@@ -351,6 +361,7 @@ Page {
           MouseArea {
             anchors.fill: unoCol
             onClicked: {
+              amplitude.logEvent("Click MainPage Button",{"label" : "One Card! - UNO Game"})
               var url = Theme.isAndroid ? "https://play.google.com/store/apps/details?id=net.vplay.demos.ONECard" : "https://itunes.apple.com/at/app/id1112447141?mt=8"
               nativeUtils.openUrl(url)
             }
@@ -389,6 +400,7 @@ Page {
           MouseArea {
             anchors.fill: showcaseCol
             onClicked: {
+              amplitude.logEvent("Click MainPage Button",{"label" : "V-Play Showcase App"})
               var url = Theme.isAndroid ? "https://play.google.com/store/apps/details?id=net.vplay.demos.apps.showcaseapp" : "https://itunes.apple.com/at/app/id1040477271?mt=8"
               nativeUtils.openUrl(url)
             }

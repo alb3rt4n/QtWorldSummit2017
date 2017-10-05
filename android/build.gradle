@@ -22,6 +22,7 @@ dependencies {
     compile 'net.vplay.plugins:plugin-onesignal:2.+' // one signal plugin
     compile 'net.vplay.plugins:plugin-notification:2.+' // local notifications
     compile 'net.vplay.plugins:plugin-facebook:2.+' // facebook plugin
+    compile 'net.vplay.plugins:plugin-amplitude:2.+' // amplitude plugin
 }
 
 android {

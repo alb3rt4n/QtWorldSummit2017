@@ -1,1 +1,2 @@
+singleton AppSettings 1.0 AppSettings.qml
 singleton DataModel 1.0 DataModel.qml

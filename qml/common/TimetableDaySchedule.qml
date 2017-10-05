@@ -38,6 +38,7 @@ Item {
     y: show ? dp(5) : -height
     opacity: show ? 1 : 0
     text: "now"
+    visible: !Theme.isIos
 
     // whether jump to now button should be visible, will be set while scrolling through view
     property bool show: false

@@ -27,6 +27,10 @@ Item {
     return scene.sp(value)
   }
 
+  // navigationStack for pushing sup-pages as new item
+  property var navigationStack: null
+  property var parentPage: null
+
   Item {
     anchors.fill: parent
 
@@ -72,8 +76,11 @@ Item {
           width: icon.width
           height: icon.height
           anchors.centerIn: parent
-          mouseArea.backgroundColor: setAlpha(Theme.tintColor, 0.1)
-          mouseArea.fillColor: setAlpha(Theme.tintColor, 0.1)
+          //mouseArea.backgroundColor: Theme.navigationBar.backgroundColor
+          //mouseArea.fillColor: Theme.navigationBar.backgroundColor
+          mouseArea.anchors.fill: undefined
+          mouseArea.width: width * 2
+          mouseArea.height: height
           onClicked: page.backClicked()
 
           Icon {
