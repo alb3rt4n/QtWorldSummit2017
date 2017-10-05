@@ -5,7 +5,7 @@ import QtQuick 2.0
 
 Item {
 
-  readonly property string licenseKey: "<your-licensekey>"
+  readonly property string licenseKey: ""
 
   readonly property int gameId: 406
   readonly property string gameSecret: "qtws2017github"
