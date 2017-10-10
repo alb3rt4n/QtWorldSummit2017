@@ -77,6 +77,8 @@ Page {
       width: parent.width
       spacing: dp(10)
 
+      property real descriptionTextMaxWidth: Math.min(parent.width - dp(Theme.navigationBar.defaultBarItemPadding) * 2, dp(600))
+
       Column {
         width: parent.width
 
@@ -207,7 +209,7 @@ Page {
 
 
       AppText {
-        width: Math.min(parent.width - dp(Theme.navigationBar.defaultBarItemPadding) * 2, dp(600))
+        width: content.descriptionTextMaxWidth
         anchors.horizontalCenter: parent.horizontalCenter
         font.pixelSize: sp(12)
         wrapMode: Text.WordWrap
@@ -230,7 +232,7 @@ Page {
 
       // More V-Play Features
       AppText {
-        width: Math.min(parent.width - dp(Theme.navigationBar.defaultBarItemPadding) * 2, dp(600))
+        width: content.descriptionTextMaxWidth
         anchors.horizontalCenter: parent.horizontalCenter
         font.pixelSize: sp(12)
         wrapMode: Text.WordWrap
@@ -240,7 +242,7 @@ Page {
 
       AppText {
         anchors.horizontalCenter: parent.horizontalCenter
-        width: Math.min(parent.width - dp(Theme.navigationBar.defaultBarItemPadding) * 2, dp(600))
+        width: content.descriptionTextMaxWidth
         font.pixelSize: sp(12)
         wrapMode: Text.WordWrap
         color: Theme.secondaryTextColor
@@ -256,7 +258,7 @@ Page {
 
       AppText {
         anchors.horizontalCenter: parent.horizontalCenter
-        width: Math.min(parent.width - dp(Theme.navigationBar.defaultBarItemPadding) * 2, dp(600))
+        width: content.descriptionTextMaxWidth
         font.pixelSize: sp(12)
         wrapMode: Text.WordWrap
         color: Theme.secondaryTextColor
@@ -276,7 +278,7 @@ Page {
 
       AppText {
         anchors.horizontalCenter: parent.horizontalCenter
-        width: Math.min(parent.width - dp(Theme.navigationBar.defaultBarItemPadding) * 2, dp(600))
+        width: content.descriptionTextMaxWidth
         font.pixelSize: sp(12)
         wrapMode: Text.WordWrap
         color: Theme.secondaryTextColor

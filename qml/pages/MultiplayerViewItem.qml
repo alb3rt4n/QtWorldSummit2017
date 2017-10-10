@@ -42,7 +42,7 @@ Item {
 
     ButtonBarItem {
       id: btnBarItem
-      visible: page.parent && page.parent.splitViewActive !== undefined ? !page.parent.splitViewActive : true
+      visible: navigationStack && navigationStack.splitViewActive ? navigationStack.depth > 2 : true
       width: icon.width
       height: icon.height
       y: (parent.height - height) * 0.5 + dp(2)
