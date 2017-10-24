@@ -148,9 +148,8 @@ Rectangle {
   // load main item dynamically
   Loader {
     id: mainLoader
-    // setting asynchronous to true causes issues at loading on Windows. the item sometimes doesn get fully loaded
-    // thus only set it to false on Windows, true on all other platforms
-    asynchronous: !system.isPlatform(System.Windows)
+    // setting asynchronous to true causes issues at loading on Desktop. the item sometimes doesnt get fully loaded
+    asynchronous: !system.desktopPlatform
     // the visible setting is irrelevant, as we move the item to the parent anyways
     visible: false
     //visible: status === Loader.Ready // this would be the ideal setting if we would display the item within loader, and not move it to the parent
