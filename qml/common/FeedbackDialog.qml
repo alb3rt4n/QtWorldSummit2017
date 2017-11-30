@@ -51,8 +51,8 @@ Dialog {
           "\nDeviceModel: " + nativeUtils.deviceModel() +
           "\nV-Play Version: " + system.vplayVersion +
           "\nUDID: " + system.UDID +
-          "\nUser Id: " + gameNetworkViewItem.gnView.gameNetworkItem.user.userId +
-          "\nUser Name: " + gameNetworkViewItem.gnView.gameNetworkItem.userName
+          "\nUser Id: " + socialViewItem.gameNetworkItem.user.userId +
+          "\nUser Name: " +socialViewItem.gameNetworkItem.userName
 
       console.debug("Feedback: " + feedbackContent + "; email: " + emailInput.text)
       sendFeedback(feedbackContent, emailInput.text)

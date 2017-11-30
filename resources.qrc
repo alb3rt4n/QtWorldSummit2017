@@ -2,13 +2,7 @@
     <qresource prefix="/">
         <file>qml</file>
         <file>qml/common</file>
+        <file>qml/common/social</file>
         <file>qml/pages</file>
-        <file>qml/gamenetwork</file>
-        <file>qml/gamenetwork/gnView</file>
-        <file>qml/gamenetwork/gnView/fonts</file>
-        <file>qml/gamenetwork/gnView/img</file>
-        <file>qml/gamenetwork/multiplayer</file>
-        <file>qml/gamenetwork/multiplayer/view</file>
-        <file>qml/gamenetwork/multiplayer/view/img</file>
     </qresource>
 </RCC>

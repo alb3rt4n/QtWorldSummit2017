@@ -5,6 +5,7 @@ import VPlayPlugins 1.0 // for NotificationManager
 import QtGraphicalEffects 1.0
 import "pages"
 import "common"
+import "common/social"
 
 Item {
   anchors.fill: parent
@@ -12,12 +13,10 @@ Item {
   // make navigation public
   property alias navigation: navigation
 
-  // game network / multiplayer view (only once per app)
-  property alias gameNetworkViewItem: gameNetworkViewItem //publicly accessible
-  property alias multiplayerViewItem: multiplayerViewItem //publicly accessible
+  // social view (only once per app)
+  property alias socialViewItem: socialView //publicly accessible
 
   Component.onCompleted: {
-    buildPlatformNavigation()  // apply platform specific navigation changes
     if(system.publishBuild) {
       // give 1 point for opening the app
       if(gameNetwork.userScoresInitiallySynced)
@@ -149,15 +148,11 @@ Item {
     notificationManager.cancelNotification(talkId)
   }
 
-  // handle theme switching (apply navigation changes)
-  Connections {
-    target: Theme
-    onPlatformChanged: buildPlatformNavigation()
-  }
-
   // app navigation
   Navigation {
     id: navigation
+    property string previousPageTitle: ""
+    property string previousPagePlatform: ""
     property var currentPage: {
       if(!currentNavigationItem)
         return null
@@ -166,6 +161,20 @@ Item {
         return currentNavigationItem.navigationStack.currentPage
       else
         return currentNavigationItem.page
+    }
+    // track previous page & platform changes to restore previous page on platform-switch when navigation changes
+    onCurrentPageChanged: {
+      if(previousPagePlatform !== Theme.platform && previousPageTitle !== "") {
+        previousPagePlatform = Theme.platform
+
+        // current page changed due to platform switch -> restore previous page
+        restorePageTimer.previousPageTitle = previousPageTitle
+        restorePageTimer.restart()
+      }
+      else if(!!currentPage) {
+        previousPagePlatform = Theme.platform
+        previousPageTitle = currentPage.title
+      }
     }
 
     // automatically load data if not loaded and schedule/favorites page is opened
@@ -245,28 +254,30 @@ Item {
 
     NavigationItem {
       title: "About"
-      iconComponent: Item {
-        height: parent.height
-        width: height
-
-        property bool selected: parent && parent.selected
-
-        Icon {
-          anchors.centerIn: parent
+      iconComponent: Component {
+        Item {
+          height: !!parent ? parent.height : 0
           width: height
-          height: parent.height
-          icon: IconType.home
-          color: !parent.selected ? Theme.textColor  : Theme.tintColor
-          visible: !vplayIcon.visible
-        }
 
-        Image {
-          id: vplayIcon
-          height: parent.height
-          anchors.horizontalCenter: parent ? parent.horizontalCenter : undefined
-          fillMode: Image.PreserveAspectFit
-          source: !parent.selected ? (Theme.isAndroid ? "../assets/Qt_logo_Android_off.png" : "../assets/Qt_logo_iOS_off.png") : "../assets/Qt_logo.png"
-          visible: Theme.isIos || Theme.backgroundColor.r == 1 && Theme.backgroundColor.g == 1 && Theme.backgroundColor.b == 1
+          property bool selected: parent && parent.selected
+
+          Icon {
+            anchors.centerIn: parent
+            width: height
+            height: parent.height
+            icon: IconType.home
+            color: !parent.selected ? Theme.textColor  : Theme.tintColor
+            visible: !vplayIcon.visible
+          }
+
+          Image {
+            id: vplayIcon
+            height: parent.height
+            anchors.horizontalCenter: parent ? parent.horizontalCenter : undefined
+            fillMode: Image.PreserveAspectFit
+            source: !parent.selected ? (Theme.isAndroid ? "../assets/Qt_logo_Android_off.png" : "../assets/Qt_logo_iOS_off.png") : "../assets/Qt_logo.png"
+            visible: true // Theme.isIos || Theme.backgroundColor.r == 1 && Theme.backgroundColor.g == 1 && Theme.backgroundColor.b == 1
+          }
         }
       }
 
@@ -319,66 +330,104 @@ Item {
         SpeakersPage {}
       }
     } // speakers
-  } // nav
 
-  // components for dynamic tabs/drawer entries
-  Component {
-    id: tracksNavItemComponent
+    NavigationItem {
+      title: "More"
+      icon: IconType.ellipsish
+      showItem: !Theme.isAndroid
+
+      NavigationStack {
+        splitView: tablet && landscape
+        MorePage {}
+      }
+    }
+
+    // social
+    NavigationItem {
+      title: "Business Meet"
+      icon: IconType.group
+      showItem: Theme.isAndroid
+
+      NavigationStack {
+        initialPage: socialView.businessMeetPage
+      }
+    } // business meet
+
+    NavigationItem {
+      title: "Profile"
+      icon: IconType.user
+      showItem: Theme.isAndroid
+
+      NavigationStack {
+        initialPage: socialView.profilePage
+      }
+    } // profile
+
+    NavigationItem {
+      title: "Chat"
+      icon: IconType.comment
+      showItem: Theme.isAndroid
+
+      NavigationStack {
+        initialPage: socialView.inboxPage
+      }
+    } // chat
+
+    NavigationItem {
+      title: "Leaderboard"
+      icon: IconType.flagcheckered
+      showItem: Theme.isAndroid
+
+      NavigationStack {
+        initialPage: socialView.leaderboardPage
+      }
+    } // leaderboard
+
     NavigationItem {
       title: "Tracks"
       icon: IconType.tag
+      showItem: Theme.isAndroid
 
       NavigationStack {
         splitView: landscape && tablet
         TracksPage {}
       }
-    }
-  } // tracks
+    } // tracks
 
-  // components for dynamic tabs/drawer entries
-  Component {
-    id: venueNavItemComponent
+
     NavigationItem {
       title: "Venue"
       icon: IconType.building
+      showItem: Theme.isAndroid
 
       NavigationStack {
         VenuePage {}
       }
-    }
-  } // venue
+    } // venue
 
-  // component for contacts menu item
-  Component {
-    id: contactsNavItemComponent
     NavigationItem {
       title: "QR Contacts"
       icon: IconType.qrcode
+      showItem: Theme.isAndroid
 
       NavigationStack {
         ContactsPage {}
       }
-    }
-  } // contacts
+    } // qr contacts
 
-  // components for dynamic tabs/drawer entries
-  Component {
-    id: settingsNavItemComponent
     NavigationItem {
       title: "Settings"
       icon: IconType.gears
+      showItem: Theme.isAndroid
 
       NavigationStack {
         SettingsPage {}
       }
-    }
-  } // settings
+    } // settings
 
-  // about v-play page
-  Component {
-    id: aboutVPlayNavItemComponent
     NavigationItem {
       title: "About V-Play"
+      showItem: Theme.isAndroid
       iconComponent: Item {
         height: parent.height
         width: height
@@ -407,314 +456,106 @@ Item {
       NavigationStack {
         AboutVPlayPage {}
       }
-    }
-  } // about v-play
+    } // About V-Play
+  } // nav
 
-  Component {
-    id: moreNavItemComponent
-    NavigationItem {
-      title: "More"
-      icon: IconType.ellipsish
-
-      NavigationStack {
-        splitView: tablet && landscape
-        MorePage {}
-      }
-    }
-  } // more
-
-  // dummyNavItemComponent for adding gameNetwork/multiplayer pages to navigation (android)
-  Component {
-    id: dummyNavItemComponent
-    NavigationItem {
-      id: dummyNavItem
-      title: "Leaderboard"
-      icon: IconType.flagcheckered // gamepad, futbolo, group, listol. sortnumericasc
-
-      property var targetItem
-      property string targetState
-      property var initHandler: function() { }
-
-      NavigationStack {
-        Page {
-          id: dummyPage
-          navigationBarHidden: true
-          title: "DummyPage"
-
-          NavigationBar {
-            width: parent.width
-          }
-
-          property Item targetItem: dummyNavItem.targetItem
-          property string targetState: dummyNavItem.targetState
-          property var initHandler: dummyNavItem.initHandler // allows to set custom init handler function for each gnview page
-
-          property alias contentArea: contentArea
-
-          // connection to navigation, show target page if dummy is selected
-          Connections {
-            target: navigation || null
-            onCurrentNavigationItemChanged: {
-              if(navigation.currentNavigationItem === dummyNavItem) {
-                dummyPage.navigationStack.popAllExceptFirst()
-                initializePageForView(dummyPage)
-
-                if(targetState === "leaderboard") {
-                  // refresh it if we open the leaderboard from the Android nav drawer
-                  gameNetworkViewItem.gnView.leaderboardView.refreshLeaderboards()
-                } else if(targetState === "profile") {
-                  // if opened from the main navigation, reset the binding to the currently logged in user
-                  // TODO: maybe better to set this from another place!?
-                  // if we have a custom gnView in place, reset the user here
-                  if(gameNetworkViewItem.gnView.profileView["resetToLoggedInUser"]) {
-                    gameNetworkViewItem.gnView.profileView.resetToLoggedInUser()
-                  }
-                }
-              }
-            }
-          }
-
-          // show target page if dummy becomes active on stack
-          onIsCurrentStackPageChanged: {
-            if(isCurrentStackPage) {
-              initializePageForView(dummyPage)
-            }
-          }
-
-          // switch active navigation items if users witches between leaderboard / profile in gnview
-          // this is not needed any longer, because users cant switch to profile view any longer from within gameNetworkView
-          /*
-          Connections {
-            target: navigation.currentNavigationItem === dummyNavItem && dummyNavItem.targetItem === gameNetworkViewItem && gameNetworkViewItem.gnView || null
-            onStateChanged: {
-              if(dummyPage.navigationStack.depth !== 1)
-                return
-
-              var targetItem = dummyNavItem.targetItem
-              var state = targetItem.viewState
-              if(Theme.isAndroid && state !== dummyNavItem.targetState) {
-                if(state === "leaderboard") {
-                  console.debug("switching to state leaderboard")
-                  navigation.currentIndex = 7
-                  // refresh it if we open the leaderboard from the gnView
-                  gameNetworkViewItem.gnView.leaderboardView.refreshLeaderboards()
-                } else if(state === "profile") {
-                  navigation.currentIndex = 5
-                  // if opened from the main navigation, reset the binding to the currently logged in user
-                  // TODO: maybe better to set this from another place!?
-                  // if we have a custom gnView in place, reset the user here
-                  if(gameNetworkViewItem.gnView.profileView["resetToLoggedInUser"]) {
-                    gameNetworkViewItem.gnView.profileView.resetToLoggedInUser()
-                  }
-                }
-              }
-            }
-          }
-          */
-
-          Item {
-            id: contentArea
-            y: Theme.statusBarHeight
-            width: parent.width
-            height: parent.height - y
-
-            property bool splitViewActive: dummyPage.navigationStack && dummyPage.navigationStack.splitViewActive
-          }
-        }
-      }
-    }
-  } // dummy
-
-  // dummy page component for wrapping gn/multiplayer views on iOS
-  Component {
-    id: dummyPageComponent
-
-    Page {
-      id: dummyPage
-      navigationBarHidden: true
-      title: "DummyPage"
-
-      property Item targetItem
-      property string targetState
-      property var initHandler: function() { } // allows to set custom init handler function for each gnview page
-
-      property alias contentArea: contentArea
-
-      // show target page if dummy becomes active on stack
-      onIsCurrentStackPageChanged: {
-        if(isCurrentStackPage) {
-          initializePageForView(dummyPage)
-        }
-      }
-
-      NavigationBar {
-        width: parent.width
-      }
-
-      Item {
-        id: contentArea
-        y: Theme.statusBarHeight
-        width: parent.width
-        height: parent.height - y
-
-        property bool splitViewActive: dummyPage.navigationStack && dummyPage.navigationStack.splitViewActive
-      }
-    }
-  }
-
-  // initialize dummy page for gn or mp view display
-  function initializePageForView(dummyPage) {
-    dummyPage.targetItem.parent = hiddenItemContainer
-
-    if(dummyPage.initHandler !== undefined)
-      dummyPage.initHandler() // allows custom init code when pushing a page
-    dummyPage.targetItem.viewState = dummyPage.targetState
-    dummyPage.targetItem.parent = dummyPage.contentArea
-    dummyPage.targetItem.navigationStack = dummyPage.navigationStack // allows pushing new gn pages
-    dummyPage.targetItem.parentPage = dummyPage
-    amplitude.logEvent("Open Social Page", {"page" : dummyPage.targetState})
-  }
-
-  Item {
-    id: hiddenItemContainer
+  SocialView {
+    id: socialView
     visible: false
     anchors.fill: parent
+    tintColor: Theme.tintColor
 
-    GameNetworkViewItem {
-      id: gameNetworkViewItem
-      state: "leaderboard"
-      anchors.fill: parent
-      onBackClicked: {
-        if(Theme.isAndroid && navigation.currentNavigationItem.navigationStack.depth <= 1)
-          navigation.drawer.open()
-        else {
-          gameNetworkViewItem.parent = hiddenItemContainer
-          navigation.currentNavigationItem.navigationStack.pop()
-        }
-      }
-    }
+    profileUserDelegate: SocialProfileDelegate { }
+    leaderboardUserDelegate: SocialLeaderboardDelegate { }
 
-    // multiplayer view (only once per app)
-    MultiplayerViewItem {
-      id: multiplayerViewItem
-      state: "inbox"
-      anchors.fill: parent
-      onBackClicked: {
-        if(Theme.isAndroid && navigation.currentNavigationItem.navigationStack.depth <= 1)
-          navigation.drawer.open()
-        else {
-          multiplayerViewItem.parent = hiddenItemContainer
-          navigation.currentPage.navigationStack.pop()
+    property Component businessMeetPage: SocialPage {
+      id: businessMeetPage
+      title: "Business Meet"
+      onPushed: businessMeetView.shownAndStateChanged() // trigger initial search when page is pushed
+
+      BusinessMeetView {
+        id: businessMeetView
+        filterToUsersWithCustomData: true
+
+        // open profile view when user is selected
+        property GameNetworkUser fetchedUser: GameNetworkUser { defaultUserName: gameNetworkItem.defaultUserName }
+        onUserSelected: {
+          // example response: {"customData":"","friendStatus":"requested","locale":"de_AT","profile_picture":"http://graph.facebook.com/1879580222057386/picture?type=large&return_ssl_resources=0","subText":"Already Requested","text":"Günther","value":5284430}
+          console.log("MultiplayerView: a user got selected:", JSON.stringify(modelData))
+
+          // only set the screen_name, if it is not a auto userid
+          if(gameNetworkItem.isUserNameSet(modelData.text)) {
+            modelData.screen_name = modelData.text
+          }
+          businessMeetView.fetchedUser.setFromMap(modelData)
+          if(modelData.customData) {
+            // setFromMap() requires the customData property named data, instead provide it like this
+            businessMeetView.fetchedUser.customData = modelData.customData
+          }
+          // the userid is in the value property of modelData!
+          businessMeetView.fetchedUser.userId = modelData.value || -1
+
+          socialView.pushProfilePage(fetchedUser, businessMeetPage.navigationStack,
+                                     { friendStatus: modelData.friendStatus})
         }
       }
     }
   }
 
-  // addDummyNavItem - adds dummy nav item to app-drawer, which opens GameNetwork/Multiplayer page
-  function addDummyNavItem(targetItem, targetState, title, icon, initHandler) {
-    navigation.addNavigationItem(dummyNavItemComponent)
-    var dummy = navigation.getNavigationItem(navigation.count - 1)
-    dummy.targetItem = targetItem
-    dummy.targetState = targetState
-    if(initHandler)
-      dummy.initHandler = initHandler
-    dummy.title = title
-    dummy.icon = icon
-  }
+  Timer {
+    id: restorePageTimer
+    interval: 5
+    property string previousPageTitle: ""
+    onTriggered: {
+      var activeTitle = restorePageTimer.previousPageTitle
 
-  // buildPlatformNavigation - apply navigation changes for different platforms
-  function buildPlatformNavigation() {
-    var activeTitle = navigation.currentPage ? navigation.currentPage.title : ""
-    var targetItem = navigation.currentPage && navigation.currentPage.targetItem || null
-    var targetState = navigation.currentPage && navigation.currentPage.targetState ? navigation.currentPage.targetState : ""
-
-    // hide multiplayer/gamenetwork views
-    gameNetworkViewItem.parent = hiddenItemContainer
-    multiplayerViewItem.parent = hiddenItemContainer
-
-    // remove previous platform specific pages
-    while(navigation.count > 4) {
-      navigation.removeNavigationItem(navigation.count - 1)
-    }
-
-    // add new platform specific pages
-    if(Theme.isAndroid) {
-      // social
-      addDummyNavItem(multiplayerViewItem, "friends", "Business Meet", IconType.group)
-      addDummyNavItem(gameNetworkViewItem, "profile", "Your Profile", IconType.user, function() {
-        // always show profile of logged in user when opened via menu item
-        if(gameNetworkViewItem.gnView.profileView["resetToLoggedInUser"]) {
-          gameNetworkViewItem.gnView.profileView.resetToLoggedInUser()
-        }
-      })
-      addDummyNavItem(multiplayerViewItem, "inbox", "Chat", IconType.comment)
-      addDummyNavItem(gameNetworkViewItem, "leaderboard", "Leaderboard", IconType.flagcheckered)
-
-      // other
-      navigation.addNavigationItem(tracksNavItemComponent)
-      navigation.addNavigationItem(venueNavItemComponent)
-      navigation.addNavigationItem(contactsNavItemComponent)
-      navigation.addNavigationItem(settingsNavItemComponent)
-      navigation.addNavigationItem(aboutVPlayNavItemComponent)
-
-      if(activeTitle === "About V-Play")
-        navigation.currentIndex = 12
-      else if(activeTitle === "Settings")
-        navigation.currentIndex = 11
-      else if(activeTitle === "Contacts")
-        navigation.currentIndex = 10
-      else if(activeTitle === "Venue")
-        navigation.currentIndex = 9
-      else if(activeTitle === "Tracks")
-        navigation.currentIndex = 8
-      if(activeTitle === "DummyPage" || activeTitle === "More") { // "More" is used when splitView is active
-        if(targetItem === gameNetworkViewItem && targetState === "leaderboard")
+      // set active Android NavigationItem in drawer
+      if(Theme.isAndroid) {
+        if(activeTitle === "About V-Play")
+          navigation.currentIndex = 12
+        else if(activeTitle === "Settings")
+          navigation.currentIndex = 11
+        else if(activeTitle === "Contacts")
+          navigation.currentIndex = 10
+        else if(activeTitle === "Venue")
+          navigation.currentIndex = 9
+        else if(activeTitle === "Tracks")
+          navigation.currentIndex = 8
+        else if(activeTitle === "Highscores")
           navigation.currentIndex = 7
-        else if (targetItem === multiplayerViewItem && targetState === "inbox")
+        else if(activeTitle === "Inbox")
           navigation.currentIndex = 6
-        else if(targetItem === gameNetworkViewItem) // profile
+        else if(activeTitle === "User Profile")
           navigation.currentIndex = 5
-        else if (targetItem === multiplayerViewItem) // business matchmaking
+        else if(activeTitle === "Business Meet")
           navigation.currentIndex = 4
       }
-    }
-    else {
-      navigation.addNavigationItem(moreNavItemComponent)
+      else {
+        // push active Page to More-Page on iOS
+        var target = ""
+        if(activeTitle === "Highscores")
+          target = socialView.leaderboardPage
+        else if(activeTitle === "Inbox")
+          target = socialView.inboxPage
+        else if(activeTitle === "User Profile")
+          target = socialView.profilePage
+        else if(activeTitle === "Business Meet")
+          target = socialView.businessMeetPage
+        else if(activeTitle === "About V-Play")
+          target = Qt.resolvedUrl("pages/AboutVPlayPage.qml")
+        else if(activeTitle === "Settings")
+          target = Qt.resolvedUrl("pages/SettingsPage.qml")
+        else if(activeTitle === "Contacts")
+          target = Qt.resolvedUrl("pages/ContactsPage.qml")
+        else if(activeTitle === "Venue")
+          target = Qt.resolvedUrl("pages/VenuePage.qml")
+        else if(activeTitle === "Tracks")
+          target = Qt.resolvedUrl("pages/TracksPage.qml")
 
-      if(!navigation.currentPage)
-        return
-
-      // open settings page when active
-      if(activeTitle === "DummyPage") {
-        navigation.currentIndex = navigation.count - 1 // open more page
-        if(targetItem === gameNetworkViewItem && targetState === "leaderboard")
-          navigation.currentPage.navigationStack.push(dummyPageComponent, { targetItem: gameNetworkViewItem, targetState: "leaderboard" })
-        else if (targetItem === multiplayerViewItem && targetState === "inbox")
-          navigation.currentPage.navigationStack.push(dummyPageComponent, { targetItem: multiplayerViewItem, targetState: "inbox" })
-        else if(targetItem === gameNetworkViewItem) // profile
-          navigation.currentPage.navigationStack.push(dummyPageComponent, { targetItem: gameNetworkViewItem, targetState: "profile" })
-        else if (targetItem === multiplayerViewItem) // business matchmaking
-          navigation.currentPage.navigationStack.push(dummyPageComponent, { targetItem: multiplayerViewItem, targetState: "friends" })
-      }
-      else if(activeTitle === "About V-Play") {
-        navigation.currentIndex = navigation.count - 1 // open more page
-        navigation.currentPage.navigationStack.push(Qt.resolvedUrl("pages/AboutVPlayPage.qml"))
-      }
-      else if(activeTitle === "Settings") {
-        navigation.currentIndex = navigation.count - 1 // open more page
-        navigation.currentPage.navigationStack.push(Qt.resolvedUrl("pages/SettingsPage.qml"))
-      }
-      else if(activeTitle === "Contacts") {
-        navigation.currentIndex = navigation.count -1 // open more page
-        navigation.currentPage.navigationStack.push(Qt.resolvedUrl("pages/ContactsPage.qml"))
-      }
-      else if(activeTitle === "Venue") {
-        navigation.currentIndex = navigation.count - 1 // open more page
-        navigation.currentPage.navigationStack.push(Qt.resolvedUrl("pages/VenuePage.qml"))
-      }
-      else if(activeTitle === "Tracks") {
-        navigation.currentIndex = navigation.count - 1 // open more page
-        navigation.currentPage.navigationStack.push(Qt.resolvedUrl("pages/TracksPage.qml"))
+        if (target != "") {
+          navigation.currentIndex = navigation.countVisible - 1 // open more page
+          navigation.currentPage.navigationStack.push(target)
+        }
       }
     }
   }
@@ -725,9 +566,10 @@ Item {
       navigation.currentIndex = 6 // go to inbox navigation item
     else {
       navigation.currentIndex = navigation.count - 1 // open more page
-      var multiplayerPage = multiplayerViewItem.parentPage
-      if(!multiplayerPage || !multiplayerPage.isCurrentStackPage || multiplayerViewItem.mpView.state !== "inbox")
-        navigation.getNavigationItem(navigation.count - 1).navigationStack.push(dummyPageComponent, { targetItem: multiplayerViewItem, targetState: "inbox" }) // push inbox page
+      if(!navigation.currentPage || navigation.currentPage.title === "Inbox")
+        return
+
+      navigation.currentPage.navigationStack.push(socialView.inboxPage) // push inbox page
     }
   }
 

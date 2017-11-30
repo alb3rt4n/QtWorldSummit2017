@@ -20,8 +20,7 @@ Rectangle {
       mainLoader.item.openInbox()
   }
 
-  property GameNetworkViewItem gameNetworkViewItem: mainLoader.item && mainLoader.item.gameNetworkViewItem || null
-  property MultiplayerViewItem multiplayerViewItem: mainLoader.item && mainLoader.item.multiplayerViewItem || null
+  property SocialView socialViewItem: mainLoader.item && mainLoader.item.socialViewItem || null
 
   // check for available app updates
   Loader {
@@ -78,7 +77,6 @@ Rectangle {
     id: gameNetwork
     gameId: AppSettings.gameId
     secret: AppSettings.gameSecret
-    gameNetworkView: gameNetworkViewItem && gameNetworkViewItem.gnView || null
     facebookItem: facebook
     defaultUserName: "User %1"
     defaultPerPageCount: 100 // increase to show more users in leaderboard, default would be 30
@@ -124,7 +122,6 @@ Rectangle {
   VPlayMultiplayer {
     id: multiplayer
     gameNetworkItem: gameNetwork
-    multiplayerView: multiplayerViewItem && multiplayerViewItem.mpView || null
     appKey: AppSettings.appKey
     pushKey: AppSettings.pushKey
     notificationBar: appNotificationBar // notification bar that also takes statusBarHeight into account
