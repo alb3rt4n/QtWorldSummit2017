@@ -2,15 +2,9 @@ import QtQuick 2.0
 import VPlay 2.0
 import VPlayApps 1.0
 
-Rectangle {
+SocialUserDelegate {
   id: cell
-
-  color: "#ffffffff"
   height: userImageWithDoubleColumnText.height + dp(16)//dp(54) // 48dp is enought so it is clickable, make a bit bigger though
-
-  signal pressed
-  signal clicked
-  signal actionClicked(var action)
 
   property bool seperator: true
   property var defaultAction
@@ -28,6 +22,10 @@ Rectangle {
     return userCustomData[fieldName] ? userCustomData[fieldName] : ""
   }
 
+  Rectangle {
+    anchors.fill: parent
+    color: "#ffffffff"
+  }
 
   UserImageWithDoubleColumnText {
     id: userImageWithDoubleColumnText
@@ -62,11 +60,10 @@ Rectangle {
     hoverEnabled: true
 
     onClicked: {
-      cell.clicked()
+       parentPage.userSelected(gameNetworkUser, modelData) // trigger userSelected signal of userSearchPage
     }
 
     onPressed: {
-      cell.pressed();
       cell.opacity = 0.75
     }
     onReleased: {
@@ -80,7 +77,7 @@ Rectangle {
     }
   }
 
-  ActionButton{
+  SocialActionButton{
     id: actionButton
     anchors.right: cell.right
     textSize: sp(15)
@@ -90,14 +87,21 @@ Rectangle {
     property var action: modelData.action === undefined ? defaultAction : modelData.action
 
     onClicked: {
-      actionClicked(action)
+      if(actionButton.action.text===qsTr("Accept")) {
+        actionButton.enabled = false
+        gameNetworkItem.sendFriendResponse(gameNetworkUser.userId, function(success) {
+          actionButton.visible = false
+          if(!!parentPage)
+            parentPage.searchUsers() // trigger searchUsers function of page that uses this delegate
+        })
+      }
     }
 
     onActionChanged: {
       if(action !== undefined){
         visible = action
         text = action.text
-        backgroundColor = action['backgroundColor'] ? action.backgroundColor : tintLightColor
+        backgroundColor = action['backgroundColor'] ? action.backgroundColor : socialViewItem.tintLightColor
       }
     }
   }
@@ -107,6 +111,6 @@ Rectangle {
     height: 1 // make this 1dp instead?
     width: parent.width
     anchors.bottom: parent.bottom
-    color: separatorColor
+    color: socialViewItem.separatorColor
   }
 }

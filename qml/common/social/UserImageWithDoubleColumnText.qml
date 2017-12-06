@@ -1,5 +1,6 @@
 import VPlayApps 1.0
 import QtQuick 2.0
+import VPlay 2.0
 
 Item {
   id: row
@@ -84,6 +85,7 @@ Item {
 
           Text {
             font.pixelSize: sp(10)
+            font.family: socialViewItem.bodyFontName
             text: modelData.text
             color: "#000"
             anchors.verticalCenter: parent.verticalCenter
@@ -96,11 +98,12 @@ Item {
 
     Text {
       id: subtext
+      font.family: socialViewItem.bodyFontName
       font.pixelSize: name.font.pixelSize * 0.8 // make a bit smaller than the main text
       visible: subtext.text !== undefined && subtext.text !== "" // if it is invisible, the only text shown is the above one, which will then be vertically centered
       width: name.width
       elide: Text.ElideRight
-      color: Theme.tintColor
+      color: socialViewItem.tintColor
     }
   }
 }// Row

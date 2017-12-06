@@ -468,36 +468,18 @@ Item {
     profileUserDelegate: SocialProfileDelegate { }
     leaderboardUserDelegate: SocialLeaderboardDelegate { }
 
-    property Component businessMeetPage: SocialPage {
+    property Component businessMeetPage: SocialUserSearchPage {
       id: businessMeetPage
       title: "Business Meet"
-      onPushed: businessMeetView.shownAndStateChanged() // trigger initial search when page is pushed
+      filterToUsersWithCustomData: true // only search users with custom data
 
-      BusinessMeetView {
-        id: businessMeetView
-        filterToUsersWithCustomData: true
+      // replace default user delegate to also show custom data
+      userSearchUserDelegate: SocialSearchDelegate { }
 
-        // open profile view when user is selected
-        property GameNetworkUser fetchedUser: GameNetworkUser { defaultUserName: gameNetworkItem.defaultUserName }
-        onUserSelected: {
-          // example response: {"customData":"","friendStatus":"requested","locale":"de_AT","profile_picture":"http://graph.facebook.com/1879580222057386/picture?type=large&return_ssl_resources=0","subText":"Already Requested","text":"Günther","value":5284430}
-          console.log("MultiplayerView: a user got selected:", JSON.stringify(modelData))
-
-          // only set the screen_name, if it is not a auto userid
-          if(gameNetworkItem.isUserNameSet(modelData.text)) {
-            modelData.screen_name = modelData.text
-          }
-          businessMeetView.fetchedUser.setFromMap(modelData)
-          if(modelData.customData) {
-            // setFromMap() requires the customData property named data, instead provide it like this
-            businessMeetView.fetchedUser.customData = modelData.customData
-          }
-          // the userid is in the value property of modelData!
-          businessMeetView.fetchedUser.userId = modelData.value || -1
-
-          socialView.pushProfilePage(fetchedUser, businessMeetPage.navigationStack,
-                                     { friendStatus: modelData.friendStatus})
-        }
+      // open profile when user is selected
+      onUserSelected: {
+        socialViewItem.pushProfilePage(gameNetworkUser, businessMeetPage.navigationStack,
+                               { friendStatus: modelData.friendStatus})
       }
     }
   }

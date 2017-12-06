@@ -249,7 +249,7 @@ SocialUserDelegate {
       /*Text {
         id: score
         font.pixelSize: 10
-        font.family: bodyFont.name
+        font.family: socialViewItem.bodyFontName
         color: bodyLightColor
         text: function() {
           var score = modelData ? Math.round(modelData.value) : 0
